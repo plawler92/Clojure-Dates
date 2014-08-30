@@ -1,0 +1,53 @@
+(import '(javax.swing JOptionPane))
+
+;dates in form 02/01/1972  mm/dd/yyyy
+
+(defn prompt-for-string [prompt]
+  (. JOptionPane showInputDialog nil prompt))
+
+;works with correct formatting
+(defn get-year [date-string]
+  (subs date-string 6))
+
+;works with correct formatting
+(defn get-month [date-string]
+  (subs date-string 0 2))
+
+;works with correct formatting
+(defn get-day [date-string]
+  (subs date-string 3 5))
+
+;works
+(defn leap-year? [year]
+  (zero? (rem year 4)))
+
+(def days-in-months [31 28 31 30 31 30 31 31 30 31 30 31])
+(def days-in-months-leap [31 29 31 30 31 30 31 31 30 31 30 31])
+
+;this is working
+(defn get-days-left-in-month [month day year]
+  (if (leap-year? (. Integer parseInt year))
+    (- (get days-in-months-leap (- (. Integer parseInt month) 1)) (. Integer parseInt day))
+    (- (get days-in-months (- (. Integer parseInt month) 1)) (. Integer parseInt day))))
+
+;this is working
+(defn get-days-left-in-year [month day year]
+  (if (leap-year? (. Integer parseInt year))
+    (+ (apply + (drop (. Integer parseInt month) days-in-months-leap)) (get-days-left-in-month month day year))
+    (+ (apply + (drop (. Integer parseInt month) days-in-months)) (get-days-left-in-month month day year))))
+
+;working
+(defn get-days-already-passed [month day year]
+  (if (leap-year? (. Integer parseInt year))
+    (- 366 (get-days-left-in-year month day year))
+    (- 365 (get-days-left-in-year month day year))))
+
+;add in validation to date prompts
+;currently has to take in in form 02/01/2000
+(let [date (prompt-for-string "Enter Start Date (mm/dd/yyyy")]
+  (let [date2 (prompt-for-string "Enter End Date (mm/dd/yyyy")]
+    (. JOptionPane showMessageDialog nil
+      (- (+ (get-days-already-passed (get-month date2) (get-day date2) (get-year date2))
+                  (reduce + (for [x (range (. Integer parseInt (get-year date)) (. Integer parseInt (get-year date2)))
+                                  :let [y (if (leap-year? x) 366 365)]]y)))
+               (get-days-already-passed (get-month date) (get-day date) (get-year date))))))
